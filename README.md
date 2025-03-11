@@ -13,7 +13,6 @@ SynthMedReports is a highly customizable Python package for generating synthetic
 - [Usage](#usage)
   - [Command-Line Interface](#command-line-interface)
   - [Example Configuration File](#example-configuration-file)
-- [Extending with FastAPI and Uvicorn](#extending-with-fastapi-and-uvicorn)
 - [Troubleshooting and Support](#troubleshooting-and-support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -56,7 +55,7 @@ pip install .
 
 This installs the package and registers the command-line entry point generate_reports.
 
-Quick Start
+### Quick Start
 Create a JSON Configuration File
 Create a configuration file (for example, config_default.json) that defines the number of records, columns, vocabulary, and report settings.
 
@@ -112,7 +111,7 @@ pathology: List of phrases for pathology reports.
 clindoc: List of phrases for clinical documents.
 ```
 
-Usage
+### Usage
 Command-Line Interface
 After installation, you can generate a CSV file by running:
 
@@ -211,3 +210,22 @@ Below is an example configuration file (config_default.json):
   }
 }
 ```
+
+### Troubleshooting and Support
+- Installation Issues:
+  Ensure you have installed all dependencies: numpy, pydantic  
+
+- Configuration Errors:
+  Verify that your JSON configuration file is valid and follows the schema outlined above. Pydantic will report validation errors if any required field is missing or invalid.
+
+- Pydantic Validation:
+  If you encounter errors related to configuration, refer to the Pydantic documentation for guidance on schema definitions.
+
+### General Support:
+For further assistance, consider opening an issue in the project's repository.
+
+### Contributing
+Contributions, improvements, and bug reports are welcome! Please fork the repository, submit your changes, and create a pull request with detailed information about your changes.
+
+### License
+This project is licensed under the MIT License. See the LICENSE file for details.
