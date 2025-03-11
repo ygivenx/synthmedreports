@@ -1,0 +1,78 @@
+{
+  "num_records": 250000,
+  "avg_notes_per_patient": 10,
+  "output_csv": "output.csv",
+  "columns": [
+    {
+      "name": "patient_id",
+      "type": "sequence",
+      "prefix": "P",
+      "pad": 8,
+      "start": 1,
+      "increment": 1
+    },
+    {
+      "name": "text_id",
+      "type": "sequence",
+      "prefix": "T",
+      "pad": 5,
+      "start": 1,
+      "increment": 1
+    },
+    {
+      "name": "text_date",
+      "type": "date",
+      "start": "2010-01-01",
+      "end": "2022-12-31"
+    },
+    {
+      "name": "text",
+      "type": "text",
+      "injection_rate": 0.2,
+      "event_keywords": ["DVT", "thrombosis", "venous thromboembolism", "embolism", "clot"],
+      "radiology": {
+        "technique": {"min_phrases": 30, "max_phrases": 50},
+        "findings": {"min_phrases": 20, "max_phrases": 30},
+        "conclusion": {"min_phrases": 20, "max_phrases": 50}
+      },
+      "pathology": {
+        "gross_desc": {"min_phrases": 30, "max_phrases": 50},
+        "micro_desc": {"min_phrases": 20, "max_phrases": 30},
+        "diagnosis": {"min_phrases": 20, "max_phrases": 30}
+      },
+      "clindoc": {
+        "history": {"min_phrases": 200, "max_phrases": 800},
+        "examination": {"min_phrases": 100, "max_phrases": 400},
+        "plan": {"min_phrases": 150, "max_phrases": 600}
+      },
+      "date_range": {"start": "2010-01-01", "end": "2022-12-31"},
+      "allowed_report_types": ["radiology", "pathology", "clindoc"]
+    },
+    {
+      "name": "text_tag_1",
+      "type": "enum",
+      "values": ["radiology", "pathology", "clindoc"]
+    }
+  ],
+  "vocab": {
+    "radiology": [
+      "CT scan", "MRI", "ultrasound", "contrast enhancement", "lesion", "nodule", "mass", 
+      "calcification", "spiculated margins", "infiltrative pattern", "peripheral", "central", 
+      "no evidence of metastasis", "pulmonary", "liver", "bone", "soft tissue", "impression", 
+      "staging", "axial images", "is", "observed", "noted", "seen", "identified", "demonstrated"
+    ],
+    "pathology": [
+      "malignant", "benign", "carcinoma", "adenocarcinoma", "invasive", "neoplastic", "biopsy", 
+      "histology", "cytology", "cellular atypia", "mitotic figures", "grade III", "necrosis", 
+      "frozen section", "immunohistochemistry", "specimen", "resection", "tumor", "infiltration", 
+      "margins", "lymph nodes", "metastasis", "lymphovascular invasion", "perineural invasion"
+    ],
+    "clindoc": [
+      "chemotherapy", "radiation therapy", "surgery", "palliative care", "diagnosis", "follow-up", 
+      "patient history", "progress note", "physical examination", "symptom management", "pain", 
+      "nausea", "fatigue", "oncology", "stage IV", "adjuvant", "treatment plan", "clinical findings", 
+      "laboratory results", "vitals", "blood pressure", "heart rate", "respiratory rate", "temperature",
+      "oxygen saturation", "mental status", "alert", "oriented", "confused", "lethargic", "agitated"
+    ]
+  }
+}
