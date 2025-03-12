@@ -53,84 +53,98 @@ Clone or download the repository, then navigate to the root folder (where `setup
 pip install .
 ```
 
-This installs the package and registers the command-line entry point generate_reports.
+This installs the package and registers the command-line entry point `generate_reports`.
 
-### Quick Start
-Create a JSON Configuration File
-Create a configuration file (for example, config_default.json) that defines the number of records, columns, vocabulary, and report settings.
+## Quick Start
 
-Run the CLI Command
+### Create a JSON Configuration File
+
+Create a configuration file (for example, `config_default.json`) that defines the number of records, columns, vocabulary, and report settings.
+
+### Run the CLI Command
 
 Generate the CSV file with the command:
 
-```generate_reports --config config_default.json```
+```bash
+generate_reports --config config_default.json
+```
 
-Configuration
+## Configuration
+
 The package is configured using a JSON file that is validated by Pydantic. The configuration file includes sections for:
 
-```
-General Settings: Number of records and output CSV filename.
-Columns: An array of column definitions. Each column is defined by its type and properties.
-Vocabulary: Lists of phrases for each report type used to generate synthetic text.
-Column Types
-SequenceColumn
-name: Column name.
-type: Must be "sequence".
-prefix: (Optional) A string prefix (e.g., "P" for patient IDs).
-pad: (Optional) Minimum width for the numeric part, zero-padded.
-start: Starting number (default is 1).
-increment: Step size between values.
-EnumColumn
-name: Column name.
-type: Must be "enum".
-values: List of possible values; one is chosen randomly for each record.
-IntColumn
-name: Column name.
-type: Must be "int".
-min: Minimum integer value.
-max: Maximum integer value.
-DateColumn
-name: Column name.
-type: Must be "date".
-start: Start date (ISO format, e.g., "2020-01-01").
-end: End date (ISO format, e.g., "2022-12-31").
-TextColumn
-name: Column name.
-type: Must be "text".
-injection_rate: Probability (0.0–1.0) of injecting an event keyword.
-event_keywords: List of keywords (e.g., related to DVT) to inject.
-radiology, pathology, clindoc:
-Define structured report sections (each section is configured with a minimum and maximum number of phrases).
-date_range: A date range used within text reports if needed.
-allowed_report_types: List of report types (e.g., ["radiology", "pathology", "clindoc"]).
-Vocabulary Configuration
-The vocabulary (phrases used to generate text reports) is defined under a top-level vocab key:
+- **General Settings:** Number of records and output CSV filename.
+- **Columns:** An array of column definitions. Each column is defined by its type and properties.
+- **Vocabulary:** Lists of phrases for each report type used to generate synthetic text.
 
-radiology: List of phrases for radiology reports.
-pathology: List of phrases for pathology reports.
-clindoc: List of phrases for clinical documents.
-```
+### Column Types
 
-### Usage
-Command-Line Interface
+#### SequenceColumn
+- **name:** Column name.
+- **type:** Must be "sequence".
+- **prefix:** (Optional) A string prefix (e.g., "P" for patient IDs).
+- **pad:** (Optional) Minimum width for the numeric part, zero-padded.
+- **start:** Starting number (default is 1).
+- **increment:** Step size between values.
+
+#### EnumColumn
+- **name:** Column name.
+- **type:** Must be "enum".
+- **values:** List of possible values; one is chosen randomly for each record.
+
+#### IntColumn
+- **name:** Column name.
+- **type:** Must be "int".
+- **min:** Minimum integer value.
+- **max:** Maximum integer value.
+
+#### DateColumn
+- **name:** Column name.
+- **type:** Must be "date".
+- **start:** Start date (ISO format, e.g., "2020-01-01").
+- **end:** End date (ISO format, e.g., "2022-12-31").
+
+#### TextColumn
+- **name:** Column name.
+- **type:** Must be "text".
+- **injection_rate:** Probability (0.0–1.0) of injecting an event keyword.
+- **event_keywords:** List of keywords (e.g., related to DVT) to inject.
+- **radiology, pathology, clindoc:** Define structured report sections (each section is configured with a minimum and maximum number of phrases).
+- **date_range:** A date range used within text reports if needed.
+- **allowed_report_types:** List of report types (e.g., ["radiology", "pathology", "clindoc"]).
+
+### Vocabulary Configuration
+
+The vocabulary (phrases used to generate text reports) is defined under a top-level `vocab` key:
+
+- **radiology:** List of phrases for radiology reports.
+- **pathology:** List of phrases for pathology reports.
+- **clindoc:** List of phrases for clinical documents.
+
+## Usage
+
+### Command-Line Interface
+
 After installation, you can generate a CSV file by running:
 
 ```bash
 generate_reports --config config_default.json
 ```
 
-CLI Options
---config: (Required) Path to your JSON configuration file.
---num_records: Override the number of records defined in the configuration.
---output_csv: Override the output CSV file name defined in the configuration.
-For example, to generate 50 records in a file named my_output.csv:
+#### CLI Options
+- `--config`: (Required) Path to your JSON configuration file.
+- `--num_records`: Override the number of records defined in the configuration.
+- `--output_csv`: Override the output CSV file name defined in the configuration.
+
+For example, to generate 50 records in a file named `my_output.csv`:
 
 ```bash
 generate_reports --config config_default.json --num_records 50 --output_csv my_output.csv
 ```
 
-Example Configuration File
-Below is an example configuration file (config_default.json):
+### Example Configuration File
+
+Below is an example configuration file (`config_default.json`):
 
 ```json
 {
@@ -211,21 +225,24 @@ Below is an example configuration file (config_default.json):
 }
 ```
 
-### Troubleshooting and Support
-- Installation Issues:
-  Ensure you have installed all dependencies: numpy, pydantic  
+## Troubleshooting and Support
 
-- Configuration Errors:
-  Verify that your JSON configuration file is valid and follows the schema outlined above. Pydantic will report validation errors if any required field is missing or invalid.
+### Installation Issues
+- Ensure you have installed all dependencies: numpy, pydantic, pyarrow, tqdm, pandas
 
-- Pydantic Validation:
-  If you encounter errors related to configuration, refer to the Pydantic documentation for guidance on schema definitions.
+### Configuration Errors
+- Verify that your JSON configuration file is valid and follows the schema outlined above. Pydantic will report validation errors if any required field is missing or invalid.
 
-### General Support:
+### Pydantic Validation
+- If you encounter errors related to configuration, refer to the Pydantic documentation for guidance on schema definitions.
+
+### General Support
 For further assistance, consider opening an issue in the project's repository.
 
-### Contributing
+## Contributing
+
 Contributions, improvements, and bug reports are welcome! Please fork the repository, submit your changes, and create a pull request with detailed information about your changes.
 
-### License
+## License
+
 This project is licensed under the MIT License. See the LICENSE file for details.
