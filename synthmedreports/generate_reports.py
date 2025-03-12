@@ -1,10 +1,12 @@
 import csv
+import os
 import random
 import datetime
 import json
 import argparse
 from typing import List, Union, Dict, Literal
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel
 
 # ---------------- Pydantic Models for Column Configurations ----------------
@@ -63,6 +65,11 @@ class TextColumn(BaseModel):
     # A date range used if needed in the text generation (for example, if you wish to embed a date)
     date_range: Dict[str, str] = {"start": "2020-01-01", "end": "2022-12-31"}
     allowed_report_types: List[str] = ["radiology", "pathology", "clindoc"]
+    report_percentages: Dict[str, float] = {
+        "radiology": 40,
+        "pathology": 30,
+        "clindoc": 30,
+    }
 
 
 # A union of all possible column types.
@@ -204,7 +211,14 @@ def generate_clindoc_text(text_config: TextColumn, phrases: List[str]) -> str:
 
 
 def generate_text_value(text_config: TextColumn, vocab: VocabModel) -> str:
-    report_type = random.choice(text_config.allowed_report_types)
+    if text_config.report_percentages:
+        report_type = random.choices(
+            list(text_config.report_percentages.keys()),
+            weights=list(text_config.report_percentages.values()),
+            k=1,
+        )[0]
+    else:
+        report_type = random.choice(text_config.allowed_report_types)
     if report_type == "radiology":
         return generate_radiology_text(text_config, vocab.radiology)
     elif report_type == "pathology":
@@ -313,17 +327,25 @@ def main():
                     record[col.name] = generate_value(col, seq_state, config.vocab)
             records.append(record)
 
-    header = [col.name for col in config.columns]
-    with open(config.output_csv, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=header)
-        writer.writeheader()
-        for rec in records:
-            writer.writerow(rec)
-
-    total_records = len(records)
-    print(
-        f"CSV file '{config.output_csv}' generated with {total_records} records across {config.num_patients} patients."
-    )
+    # Determine output format based on file extension.
+    output_file = config.output_csv
+    ext = os.path.splitext(output_file)[1].lower()
+    if ext == ".parquet":
+        df = pd.DataFrame(records)
+        df.to_parquet(output_file, index=False)
+        print(
+            f"Parquet file '{output_file}' generated with data for {config.num_patients} patients."
+        )
+    else:
+        header = [col.name for col in config.columns]
+        with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=header)
+            writer.writeheader()
+            for rec in records:
+                writer.writerow(rec)
+        print(
+            f"CSV file '{output_file}' generated with data for {config.num_patients} patients."
+        )
 
 
 if __name__ == "__main__":

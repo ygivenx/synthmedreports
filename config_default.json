@@ -1,7 +1,7 @@
 {
   "num_patients": 250000,
   "avg_notes_per_patient": 10,
-  "output_csv": "output.csv",
+  "output_csv": "output.parquet",
   "columns": [
     {
       "name": "patient_id",
@@ -46,6 +46,7 @@
         "plan": {"min_phrases": 150, "max_phrases": 600}
       },
       "date_range": {"start": "2010-01-01", "end": "2022-12-31"},
+      "report_percentages": {"radiology": 40, "pathology": 30, "clindoc": 30},
       "allowed_report_types": ["radiology", "pathology", "clindoc"]
     },
     {
