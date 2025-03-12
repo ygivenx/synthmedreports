@@ -8,7 +8,8 @@ setup(
         "numpy",
         "pydantic",
         "pandas",
-        "pyarrow",  # Required for Parquet output]
+        "pyarrow",  # Required for Parquet output
+        "tqdm",
     ],
     entry_points={
         "console_scripts": ["generate_reports=synthmedreports.generate_reports:main"]

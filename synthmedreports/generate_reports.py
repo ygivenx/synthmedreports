@@ -1,13 +1,17 @@
+import argparse
+import concurrent.futures
 import csv
-import os
-import random
 import datetime
 import json
-import argparse
-from typing import List, Union, Dict, Literal
+import os
+import random
+from functools import partial
+from typing import Dict, List, Literal, Union
+
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel
+from tqdm import tqdm
 
 # ---------------- Pydantic Models for Column Configurations ----------------
 
@@ -267,6 +271,30 @@ def generate_value(
         return ""
 
 
+def generate_patient_records(patient_idx, config, vocab):
+    """Generate all records for a single patient"""
+    seq_state = {}  # Local state for this patient
+    patient_records = []
+
+    # Generate patient ID
+    patient_id = None
+    for col in config.columns:
+        if col.name == "patient_id":
+            # For patient ID, use deterministic value based on index
+            patient_id = f"P{str(patient_idx + 1).zfill(6)}"
+
+    # Determine number of notes for this patient
+    num_notes = max(1, np.random.poisson(config.avg_notes_per_patient))
+    for _ in range(num_notes):
+        record = {"patient_id": patient_id}
+        for col in config.columns:
+            if col.name != "patient_id":
+                record[col.name] = generate_value(col, seq_state, vocab)
+        patient_records.append(record)
+
+    return patient_records
+
+
 # ---------------- Configuration Loading ----------------
 def load_config(config_path: str) -> ConfigModel:
     with open(config_path, "r") as f:
@@ -294,6 +322,12 @@ def main():
     parser.add_argument(
         "--output_csv", type=str, help="Override output CSV file name.", default=None
     )
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=os.cpu_count(),
+        help="Number of threads to use (default: auto-detect)",
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -307,45 +341,63 @@ def main():
     seq_state = {}
     records = []
 
-    # Loop over patients and generate notes per patient based on a Poisson distribution
-    for _ in range(config.num_patients):
-        # Generate patient-level values (e.g., patient_id)
-        patient_record = {}
-        for col in config.columns:
-            if col.name == "patient_id":
-                patient_record["patient_id"] = generate_value(
-                    col, seq_state, config.vocab
-                )
-        # Determine number of notes for this patient (at least one note)
-        num_notes = max(1, np.random.poisson(config.avg_notes_per_patient))
-        for _ in range(num_notes):
-            record = {}
+    if args.threads > 1:
+        all_records = []
+        gen_func = partial(generate_patient_records, config=config, vocab=config.vocab)
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.threads
+        ) as executor:
+            for patient_records in tqdm(
+                executor.map(gen_func, range(config.num_patients)),
+                total=config.num_patients,
+                desc="Generating patient records",
+            ):
+                all_records.extend(patient_records)
+        records = all_records
+    else:
+        # Loop over patients and generate notes per patient based on a Poisson distribution
+        for _ in tqdm(range(config.num_patients), desc="Generating patients"):
+            # Generate patient-level values (e.g., patient_id)
+            patient_record = {}
             for col in config.columns:
                 if col.name == "patient_id":
-                    record["patient_id"] = patient_record["patient_id"]
-                else:
-                    record[col.name] = generate_value(col, seq_state, config.vocab)
-            records.append(record)
+                    patient_record["patient_id"] = generate_value(
+                        col, seq_state, config.vocab
+                    )
+            # Determine number of notes for this patient (at least one note)
+            num_notes = max(1, np.random.poisson(config.avg_notes_per_patient))
+            for _ in range(num_notes):
+                record = {}
+                for col in config.columns:
+                    if col.name == "patient_id":
+                        record["patient_id"] = patient_record["patient_id"]
+                    else:
+                        record[col.name] = generate_value(col, seq_state, config.vocab)
+                records.append(record)
 
     # Determine output format based on file extension.
     output_file = config.output_csv
     ext = os.path.splitext(output_file)[1].lower()
-    if ext == ".parquet":
-        df = pd.DataFrame(records)
-        df.to_parquet(output_file, index=False)
-        print(
-            f"Parquet file '{output_file}' generated with data for {config.num_patients} patients."
-        )
-    else:
-        header = [col.name for col in config.columns]
-        with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=header)
-            writer.writeheader()
-            for rec in records:
-                writer.writerow(rec)
-        print(
-            f"CSV file '{output_file}' generated with data for {config.num_patients} patients."
-        )
+    try:
+        if ext == ".parquet":
+            df = pd.DataFrame(records)
+            df.to_parquet(output_file, index=False)
+            print(
+                f"Parquet file '{output_file}' generated with data for {config.num_patients} patients."
+            )
+        else:
+            header = [col.name for col in config.columns]
+            with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=header)
+                writer.writeheader()
+                for rec in records:
+                    writer.writerow(rec)
+            print(
+                f"CSV file '{output_file}' generated with data for {config.num_patients} patients."
+            )
+    except IOError as e:
+        print(f"Error writing to file '{output_file}': {e}")
+        return 1
 
 
 if __name__ == "__main__":
