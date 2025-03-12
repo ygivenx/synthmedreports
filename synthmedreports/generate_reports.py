@@ -328,6 +328,14 @@ def main():
         default=os.cpu_count(),
         help="Number of threads to use (default: auto-detect)",
     )
+    parser.add_argument(
+        "--unique_columns",
+        type=str,
+        nargs="+",
+        default=["text_id"],
+        help="Column names that should have globally unique values (default: text_id)",
+    )
+
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -337,6 +345,19 @@ def main():
         config.avg_notes_per_patient = args.avg_notes_per_patient
     if args.output_csv is not None:
         config.output_csv = args.output_csv
+
+    # Create set of column names to be uniquely assigned post-generation
+    unique_cols = set(args.unique_columns)
+
+    # Check if specified columns exist and are sequence columns
+    for col_name in unique_cols:
+        col = next((col for col in config.columns if col.name == col_name), None)
+        if col is None:
+            print(f"Warning: Unique column '{col_name}' not found in configuration")
+        elif not isinstance(col, SequenceColumn):
+            print(
+                f"Warning: Column '{col_name}' is not a sequence column, uniqueness may not be applicable"
+            )
 
     seq_state = {}
     records = []
@@ -375,6 +396,18 @@ def main():
                         record[col.name] = generate_value(col, seq_state, config.vocab)
                 records.append(record)
 
+    for col_name in unique_cols:
+        col = next((col for col in config.columns if col.name == col_name), None)
+        if col and isinstance(col, SequenceColumn):
+            print(f"Assigning unique {col_name} values...")
+            counter = col.start
+            for rec in tqdm(records, desc=f"Assigning {col_name}"):
+                rec[col_name] = (
+                    f"{col.prefix}{str(counter).zfill(col.pad)}"
+                    if col.pad > 0
+                    else f"{col.prefix}{counter}"
+                )
+                counter += col.increment
     # Determine output format based on file extension.
     output_file = config.output_csv
     ext = os.path.splitext(output_file)[1].lower()

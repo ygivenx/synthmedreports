@@ -1,6 +1,6 @@
 {
-  "num_patients": 250000,
-  "avg_notes_per_patient": 10,
+  "num_patients": 1000,
+  "avg_notes_per_patient": 8,
   "output_csv": "output.parquet",
   "columns": [
     {
