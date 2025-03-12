@@ -257,7 +257,7 @@ def generate_value(
 def load_config(config_path: str) -> ConfigModel:
     with open(config_path, "r") as f:
         raw = json.load(f)
-    return ConfigModel.parse_obj(raw)
+    return ConfigModel.model_validate(raw)
 
 
 # ---------------- MAIN FUNCTION ----------------

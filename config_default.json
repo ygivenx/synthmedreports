@@ -1,5 +1,5 @@
 {
-  "num_records": 250000,
+  "num_patients": 250000,
   "avg_notes_per_patient": 10,
   "output_csv": "output.csv",
   "columns": [
